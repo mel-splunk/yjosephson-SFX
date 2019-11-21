@@ -36,10 +36,10 @@ public class ResponseTimes
     		ingestStr, 443);
 
 	//SignalFxReporter signalfxReporter = new SignalFxReporter.Builder(metricRegistry,
-    	//	new StaticAuthToken("OdlNmgCPBou9EjLqikdGDg"), ingestStr).setEndpoint(endpoint);
+    	//	new StaticAuthToken("xxxxx"), ingestStr).setEndpoint(endpoint);
 
 	SignalFxReporter signalfxReporter = new SignalFxReporter.Builder(metricRegistry,
-    		new StaticAuthToken("OdlNmgCPBou9EjLqikdGDg"), ingestStr)
+    		new StaticAuthToken("xxxxx"), ingestStr)
 	.setEndpoint(endpoint)
 	.build();
         signalfxReporter.start(1, TimeUnit.SECONDS);
@@ -78,7 +78,7 @@ public class ResponseTimes
 
             String url = sites[sitesindex];
 
-            String[] command = {"C:\\Users\\ybjos\\OneDrive\\Desktop\\curl-7.65.3-win64-mingw\\curl-7.65.3-win64-mingw\\bin\\curl", "-u", "Accept:application/json", url};
+            String[] command = {"C:\\bin\\curl", "-u", "Accept:application/json", url};
 
 	    System.out.println("command " + Arrays.toString(command));
             ProcessBuilder process = new ProcessBuilder(command);
