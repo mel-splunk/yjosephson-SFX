@@ -63,7 +63,6 @@ resource "signalfx_monitor" "rds_replica_lag" {
   EOQ*/
 
   program_text = <<-EOF
-      /* Need to figure out total_storage_space */
       signal = data('ReplicaLag', filter=filter('namespace', 'AWS/RDS'), rollup='mean').${var.replicalag_time_aggregator}.mean(by=['aws_region','aws_account_id', 'DBInstanceIdentifier'])
 			
 			detect(when(signal > ${var.replicalag_threshold_critical}, ${var.replicalag_timeframe})).publish('CRIT')
