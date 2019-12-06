@@ -10,7 +10,6 @@ resource "signalfx_monitor" "visible_messages" {
   EOQ*/
 
   program_text = <<-EOF
-      /* Need to figure out total_storage_space */
       signal = data('ApproximateNumberOfMessagesVisible', filter=filter('namespace', 'AWS/SQS'), rollup='mean').${var.visible_messages_time_aggregator}.mean(by=['aws_region','QueueName'])
 			
 			detect(when(signal > ${var.visible_messages_threshold_critical}, ${var.visible_messages_timeframe})).publish('CRIT')
@@ -36,7 +35,6 @@ resource "signalfx_monitor" "age_of_oldest_message" {
   EOQ*/
 
   program_text = <<-EOF
-      /* Need to figure out total_storage_space */
       signal = data('ApproximateAgeOfOldestMessage', filter=filter('namespace', 'AWS/SQS'), rollup='mean').${var.age_of_oldest_message_time_aggregator}.mean(by=['aws_region','QueueName'])
 			
 			detect(when(signal > ${var.age_of_oldest_message_threshold_critical}, ${var.age_of_oldest_message_timeframe})).publish('CRIT')
