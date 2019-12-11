@@ -1,4 +1,4 @@
-# [Goblin] Advertiser Report - Number of Successful Jobs is less than SLO
+# [Goblin] EDSP Report - Number of Successful Jobs is less than SLO
 resource "signalfx_detector" "[Goblin] EDSP Report - Number of Successful Jobs is less than SLO" {
   count = "${length(var.clusters)}"
   name    = "[Goblin] EDSP Report - Number of Successful Jobs is less than SLO"
