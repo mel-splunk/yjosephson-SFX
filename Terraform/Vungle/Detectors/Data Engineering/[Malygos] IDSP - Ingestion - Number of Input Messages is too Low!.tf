@@ -9,7 +9,6 @@ resource "signalfx_detector" "[Malygos] IDSP - Ingestion - Number of Input Messa
   EOQ*/
 
   program_text = <<-EOF
-    /* can't find matching metrics */
       signal = data('malygos.idsp.ingestion.streaming.consumed.records', filter=filter('environment', 'prod')).max(over='1h')
       
 			detect(when(signal < 1000000)).publish('CRIT')
