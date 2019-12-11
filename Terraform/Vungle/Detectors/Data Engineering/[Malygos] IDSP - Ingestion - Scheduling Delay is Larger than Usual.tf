@@ -16,7 +16,7 @@ resource "signalfx_detector" "[Malygos] IDSP - Ingestion - Scheduling Delay is L
   EOF
 
 	rule {
-		description = "Min > 10 for last 1b"
+		description = "Min > 10 for last 1h"
 		severity = "Critical"
 	}
 
