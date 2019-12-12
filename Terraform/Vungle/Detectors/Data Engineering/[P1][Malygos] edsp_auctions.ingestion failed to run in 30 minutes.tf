@@ -12,7 +12,7 @@ resource "signalfx_detector" "p1_malygos_edsp_auctions_ingestion_failed_to_run_i
 	rule {
 		description = "Sum < 1 for last 30m"
 		severity = "Critical"
-		etect_label = "Processing messages last 1h"
+		detect_label = "Processing messages last 1h"
 		notifications = ["Email,foo-alerts@bar.com"]
 	}
 
