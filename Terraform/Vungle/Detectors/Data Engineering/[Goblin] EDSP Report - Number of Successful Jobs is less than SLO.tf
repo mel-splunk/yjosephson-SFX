@@ -1,6 +1,5 @@
 # [Goblin] EDSP Report - Number of Successful Jobs is less than SLO
 resource "signalfx_detector" "goblin_edsp_report_number_of_successful_jobs_is_less_than_slo" {
-	count = "1"
 	name = "[Goblin] EDSP Report - Number of Successful Jobs is less than SLO"
 	description = "Batch pipeline which sync data from Cheezit edsp_report table to Memsql edsp_report_column table. The table is used for Medivh queries."
 
@@ -9,10 +8,12 @@ resource "signalfx_detector" "goblin_edsp_report_number_of_successful_jobs_is_le
 		detect(when(signal >= 10 )).publish('CRIT')
 	EOF
 
+	teams = var.team_id
+
 	rule {
 		description = "Sum >= 10 for last 1m"
 		severity = "Critical"
-		detect_label = "Processing messages last 1m"
+		detect_label = "CRIT"
 		notifications = ["Email,foo-alerts@bar.com"]
 	}
 
