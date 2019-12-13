@@ -1,6 +1,5 @@
 # [P1][Medivh] adv.duration latency go high
 resource "signalfx_detector" "p1_medivh_adv_duration_latency_go_high" {
-	count = "1"
 	name = "[P1][Medivh] adv.duration latency go high"
 	description = "This is monitoring the total number of milliseconds spent in the hot path of handling external advertiser report endpoint."
 
@@ -9,10 +8,12 @@ resource "signalfx_detector" "p1_medivh_adv_duration_latency_go_high" {
 		detect(when(signal > 30000 )).publish('CRIT')
 	EOF
 
+	teams = var.team_id
+
 	rule {
 		description = "Average > 30000 for last 5m"
 		severity = "Critical"
-		detect_label = "Processing messages last 5m"
+		detect_label = "CRIT"
 		notifications = ["Email,foo-alerts@bar.com"]
 	}
 
