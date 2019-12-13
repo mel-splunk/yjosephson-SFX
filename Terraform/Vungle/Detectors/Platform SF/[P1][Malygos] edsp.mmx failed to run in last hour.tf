@@ -4,7 +4,7 @@ resource "signalfx_detector" "p1_malygos_edsp_mmx_failed_to_run_in_last_hour" {
 	description = "Batch pipeline which loads data from cheezit edsp_transactions table and perform ETL on them and ship the results to S3 vungle-mmx-share/gallywix/mmx bucket so that MMX could pick them up and show the results on their dashboard"
 
 	program_text = <<-EOF
-		A = data('malygos.edsp.mmx.success', filter=filter('environment', 'prod'), rollup='average').sum(over='1h')
+		signal = data('malygos.edsp.mmx.success', filter=filter('environment', 'prod'), rollup='average').sum(over='1h')
 		detect(when(signal < 1)).publish('CRIT')
 	EOF
 
