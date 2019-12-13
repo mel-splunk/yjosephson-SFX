@@ -4,7 +4,7 @@ resource "signalfx_detector" "p2_malygos_edsp_aggregation_publisher_report_count
 	description = "Batch pipeline which consumes data from cheezit edsp_transactions table and performs aggregation by mutiple dimensions for several metrics calculation and ship the results into cheezit's publisher_report and edsp_report table"
 
 program_text = <<-EOF
-		A = data('malygos.edsp.aggregation.publisherReportCount', filter=filter('environment', 'prod'), rollup='average').max(over='2h')
+		signal = data('malygos.edsp.aggregation.publisherReportCount', filter=filter('environment', 'prod'), rollup='average').max(over='2h')
 		detect(when(signal < 1200)).publish('CRIT')
 	EOF
 
