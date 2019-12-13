@@ -4,7 +4,7 @@ resource "signalfx_detector" "p1_malygos_edsp_auctions_ingestion_failed_to_run_i
 	description = "Streaming pipeline which consumes data from kafka ex-jaeger-auction and as-reportAds topics and perform join on them and ship the results to cheezit edsp_auctions table"
 
 	program_text = <<-EOF
-		A = data('malygos.edsp_auctions.ingestion.success', filter=filter('environment', 'prod'), rollup='average').sum(over='30m')
+		signal = data('malygos.edsp_auctions.ingestion.success', filter=filter('environment', 'prod'), rollup='average').sum(over='30m')
 		detect(when(signal < 1)).publish('CRIT')
 	EOF
 
