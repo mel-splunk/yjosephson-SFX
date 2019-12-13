@@ -5,7 +5,7 @@ resource "signalfx_detector" "meister_amount_of_no_bids_is_too_high" {
 
 	program_text = <<-EOF
 		A = data('dsp.meister.response.api.v1.status.204', filter=filter('environment', 'api-gke'), rollup='rate').sum()
-		B = data('dsp.meister.response.api.v1.status.204', filter=filter('environment', 'api-gke'), rollup='rate').sum()
+		B = data('dsp.meister.response.api.v1.status.200', filter=filter('environment', 'api-gke'), rollup='rate').sum()
 		signal = (A/(A+B)).scale(100).min(over='10m')
 		detect(when(signal > 90)).publish('CRIT')
 	EOF
