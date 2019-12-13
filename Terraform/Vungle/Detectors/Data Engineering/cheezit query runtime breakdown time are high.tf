@@ -1,6 +1,5 @@
 # cheezit query runtime breakdown time are high
-resource "signalfx_detector" "cheezit query runtime breakdown time are high" {
-	count = "1"
+resource "signalfx_detector" "cheezit_query_runtime_breakdown_time_are_high" {
 	name = "cheezit query runtime breakdown time are high"
 	description = "Cheezit query runtime breakdown time are high"
 
@@ -9,10 +8,12 @@ resource "signalfx_detector" "cheezit query runtime breakdown time are high" {
 		detect(when(signal > 2000000)).publish('CRIT')
 	EOF
 
+	teams = var.team_id
+
 	rule {
 		description = "Average > 2000000 for last 30m"
 		severity = "Critical"
-		detect_label = "Processing messages last 30m"
+		detect_label = "CRIT"
 		notifications = ["Email,foo-alerts@bar.com"]
 	}
 
