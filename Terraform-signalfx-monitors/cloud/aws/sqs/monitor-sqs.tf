@@ -1,5 +1,5 @@
 # Approximate Number of Visible Messages
-resource "signalfx_monitor" "visible_messages" {
+resource "signalfx_detector" "visible_messages" {
 	name = "SQS Visible messages"
 
 	program_text = <<-EOF
@@ -16,7 +16,7 @@ resource "signalfx_monitor" "visible_messages" {
 }
 
 # Age of the Oldest Message
-resource "signalfx_monitor" "age_of_oldest_message" {
+resource "signalfx_detector" "age_of_oldest_message" {
 	name = "SQS Age of the oldest message"
 
 	program_text = <<-EOF
