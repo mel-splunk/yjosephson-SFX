@@ -1,4 +1,4 @@
-resource "signalfx_monitor" "VPN_status" {
+resource "signalfx_detector" "VPN_status" {
 	name = "VPN tunnel down"
 
 	/*query = <<EOQ
