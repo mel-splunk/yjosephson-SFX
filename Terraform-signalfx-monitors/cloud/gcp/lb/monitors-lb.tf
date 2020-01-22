@@ -1,7 +1,7 @@
 #
 # 4XX Errors
 #
-resource "signalfx_monitor" "error_rate_4xx" {
+resource "signalfx_detector" "error_rate_4xx" {
 	name = "GCP LB 4xx errors"
 
 	program_text = <<-EOF
@@ -21,7 +21,7 @@ resource "signalfx_monitor" "error_rate_4xx" {
 #
 # 5XX Errors
 #
-resource "signalfx_monitor" "error_rate_5xx" {
+resource "signalfx_detector" "error_rate_5xx" {
 	name = "GCP LB 5xx errors"
 
 	program_text = <<-EOF
@@ -41,7 +41,7 @@ resource "signalfx_monitor" "error_rate_5xx" {
 #
 # Backend Latency for service
 #
-resource "signalfx_monitor" "backend_latency_service" {
+resource "signalfx_detector" "backend_latency_service" {
 	name = "GCP LB service backend latency"
 
 	program_text = <<-EOF
@@ -59,7 +59,7 @@ resource "signalfx_monitor" "backend_latency_service" {
 #
 # Backend Latency for bucket
 #
-resource "signalfx_monitor" "backend_latency_bucket" {
+resource "signalfx_detector" "backend_latency_bucket" {
 	name = "GCP LB bucket backend latency"
 
 	program_text = <<-EOF
@@ -77,7 +77,7 @@ resource "signalfx_monitor" "backend_latency_bucket" {
 #
 # Request Count
 #
-resource "signalfx_monitor" "request_count" {
+resource "signalfx_detector" "request_count" {
 	name = "GCP LB Requests count increased abruptly"
 
 	program_text = <<-EOF
