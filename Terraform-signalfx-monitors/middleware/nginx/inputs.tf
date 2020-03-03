@@ -31,11 +31,6 @@ variable "nginx_critical_disabled_flag" {
 	default = "false"
 }
 
-variable "nginx_filter" {
-	description = "(Optional) Nginx filter criteria. Examples `, filter=filter('plugin', 'kong')` 
-	default = ", filter=filter('plugin', 'nginx')"
-}
-
 variable "nginx_aggregation_function" {
 	description = "(Optional) Nginx aggregation function and group by. Examples `.mean(by=['host']).` or `.max()` 
 	default = ".mean(by=['host'])"
