@@ -1,0 +1,10 @@
+ansicolor
+pandas>=0.18.0
+matplotlib
+requests
+prompt_toolkit>=2.0.1
+pygments
+pygments-signalflow>=0.3
+signalfx>=1.0.14
+tslib>=1.5.1
+six>=1.10.0
