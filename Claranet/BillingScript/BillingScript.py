@@ -7,6 +7,9 @@ import signalfx
 import json
 import argparse
 import pandas
+import os
+import glob
+os.chdir(".")
 
 SIGNALFX_API_KEY = '8pTi_Ul7wVR-dC0xGT2aJw'
 
@@ -96,6 +99,7 @@ def get_signalflow_results(program, start, stop, resolution=None, **kwargs):
 	metadata = {}
 	results = {}
 	single_datapoint_results = {}
+	metadata = {}
 
 	argz = {
 		'program': program,
@@ -109,28 +113,8 @@ def get_signalflow_results(program, start, stop, resolution=None, **kwargs):
 	argz.update(**kwargs)
 
 	for msg in flow.execute(**argz).stream():
-		# For metadata messages, get all values and ignore the Pythonic options that start with a double underscore.
-		"""if isinstance(msg, signalfx.signalflow.messages.MetadataMessage):
-			md = msg.__dict__
-			metadata[md.get('_tsid')] = {k: md[k] for k in md.keys() if not k.startswith('__')}
+		# Get all values
 
-		if isinstance(msg, signalfx.signalflow.messages.DataMessage):
-			# Temporary dictionary to old the results from the `DataMessage`.
-			result = {}
-
-			# For each item in the rollup window, add the saved metadata for the metric timeseries along with the value.
-			for tsid, val in msg.data.items():
-				result[tsid] = metadata.get(tsid, {})
-				result[tsid]['@value'] = val
-
-			# Add the results of this temporary dictionary to the master results dictionary. Use deepcopy() to ensure
-			# all of the data is copied into the master results dictionary and not just Python adding references which
-			# can result in incorrect data.
-			results[msg.logical_timestamp_ms] = deepcopy(result)
-
-			# No metadata:
-			# results[msg.logical_timestamp_ms] = msg.data
-		"""
 		if isinstance(msg, signalfx.signalflow.messages.MetadataMessage):
 			for k, v in msg.properties.items():
 				if ("childOrgName" in k):
@@ -138,10 +122,9 @@ def get_signalflow_results(program, start, stop, resolution=None, **kwargs):
 
 		if isinstance(msg, signalfx.signalflow.messages.DataMessage):
 			result = {}
+
 			if msg.data.items():
 				for tsid, val in msg.data.items():
-					#print(tsid, val)
-					#print(metadata.get(tsid, {}))
 					result[metadata.get(tsid, {})] = val
 
 				results[msg.logical_timestamp_ms] = deepcopy(result)
@@ -157,14 +140,6 @@ def main():
 	parser.add_argument('-ym', '--yearmonth', type=int, help='yearmonth to compute')
 	inputoptions = parser.parse_args()
 
-	# Each item in this list will represent a SignalFlow program line. We will assemble these later.
-	signal_flow_program_parts = [
-		"A = data('sf.org.child.numResourcesMonitored', filter=filter('resourceType', 'container')).sum(by=['childOrgName']).mean(cycle='hour', cycle_start='0m', partial_values=False).mean(cycle='month', cycle_start='1d', partial_values=False).publish(label='A')"
-	]
-
-	# Assemble each item in the array to a large program text with each item on it's own line.
-	assembled_program_text = '\n'.join(signal_flow_program_parts)
-
 	# If no month/year passed into the program, then grab the current UTC time and set it as the end time and our start time will be 15 minutes previous!
 	if not inputoptions.yearmonth:
 		end_time_obj = datetime.utcnow()
@@ -175,19 +150,26 @@ def main():
 		end_time_obj = enddate + timedelta(minutes=5)
 		start_time_obj = end_time_obj - timedelta(minutes=10)
 
-	#print ('endtime: ', end_time_obj)
-	#print ('starttime: ', start_time_obj)
+	print ('endtime: ', end_time_obj)
+	print ('starttime: ', start_time_obj)
 
 	# Now convert them to proper timestamps in milliseconds.
 	end = convert_dt_to_milliseconds(end_time_obj)
 	start = convert_dt_to_milliseconds(start_time_obj)
 
+	# Each item in this list will represent a SignalFlow program line. We will assemble these later.
+	signal_flow_program_parts = [
+		"A = data('sf.org.child.numResourcesMonitored', filter=filter('resourceType', 'container')).sum(by=['childOrgName']).mean(cycle='hour', cycle_start='0m', partial_values=False).mean(cycle='month', cycle_start='1d', partial_values=False).publish(label='A')"
+	]
+
+	# Assemble each item in the array to a large program text with each item on it's own line.
+	assembled_program_text = '\n'.join(signal_flow_program_parts)
+
 	results = get_signalflow_results(program=assembled_program_text, start=start, stop=end, resolution=900000, immediate=True)
 
 	json_parsed = json.dumps(results)
-	#print(json_parsed)
 
-	OutputFileName = "BillingOutput.csv"
+	OutputFileName = "Container.csv"
 	pandas.read_json(json_parsed).to_csv(OutputFileName, header=1)
 
 	# add header
@@ -195,8 +177,57 @@ def main():
 	Frame = pandas.DataFrame(csvfile.values, columns = ["ChildOrgName", "Container"])
 	Frame.to_csv(OutputFileName, sep=',', index=False)
 
+	# Each item in this list will represent a SignalFlow program line. We will assemble these later.
+	signal_flow_program_parts = [
+		"A = data('sf.org.child.numResourcesMonitored', filter=filter('resourceType', 'host')).sum(by=['childOrgName']).mean(cycle='hour', cycle_start='0m', partial_values=False).mean(cycle='month', cycle_start='1d', partial_values=False).publish(label='A')"
+	]
+
+	# Assemble each item in the array to a large program text with each item on it's own line.
+	assembled_program_text = '\n'.join(signal_flow_program_parts)
+
+	results = get_signalflow_results(program=assembled_program_text, start=start, stop=end, resolution=900000, immediate=True)
+
+	json_parsed = json.dumps(results)
+
+	OutputFileName = "Host.csv"
+	pandas.read_json(json_parsed).to_csv(OutputFileName, header=1)
+
+	# add header
+	csvfile = pandas.read_csv(OutputFileName, sep=',')
+	Frame = pandas.DataFrame(csvfile.values, columns = ["ChildOrgName", "Host"])
+	Frame.to_csv(OutputFileName, sep=',', index=False)
+
+	# Each item in this list will represent a SignalFlow program line. We will assemble these later.
+	signal_flow_program_parts = [
+		"A = data('sf.org.child.numCustomMetrics').sum(by=['childOrgName']).mean(cycle='hour', cycle_start='0m', partial_values=False).mean(cycle='month', cycle_start='1d', partial_values=False).publish('A')"
+	]
+
+	# Assemble each item in the array to a large program text with each item on it's own line.
+	assembled_program_text = '\n'.join(signal_flow_program_parts)
+
+	results = get_signalflow_results(program=assembled_program_text, start=start, stop=end, resolution=900000, immediate=True)
+
+	json_parsed = json.dumps(results)
+
+	OutputFileName = "CustomMetrics.csv"
+	pandas.read_json(json_parsed).to_csv(OutputFileName, header=1)
+
+	# add header
+	csvfile = pandas.read_csv(OutputFileName, sep=',')
+	Frame = pandas.DataFrame(csvfile.values, columns = ["ChildOrgName", "CustomMetrics"])
+	Frame.to_csv(OutputFileName, sep=',', index=False)
+
+	# Combine all files
+	extension = 'csv'
+	all_filenames = [i for i in glob.glob('*.{}'.format(extension))]
+	#combine all files in the list
+	combined_csv = pandas.concat([pandas.read_csv(f) for f in all_filenames ], sort=True)
+	#export to csv
+	combined_csv.to_csv( "BillingOutput.csv", index=False, encoding='utf-8-sig')
+
 	print('THE END!')
 
 
 if __name__ == '__main__':
 	main()
+
