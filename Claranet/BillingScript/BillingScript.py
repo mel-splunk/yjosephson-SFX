@@ -2,13 +2,15 @@
 
 from copy import deepcopy
 from datetime import datetime, timedelta
+from functools import reduce
 import csv
 import signalfx
 import json
 import argparse
-import pandas
+import pandas as pd
 import os
 import glob
+
 os.chdir(".")
 
 SIGNALFX_API_KEY = '8pTi_Ul7wVR-dC0xGT2aJw'
@@ -169,13 +171,13 @@ def main():
 
 	json_parsed = json.dumps(results)
 
-	OutputFileName = "Container.csv"
-	pandas.read_json(json_parsed).to_csv(OutputFileName, header=1)
+	OutputFileNameC = "Container1.csv"
+	pd.read_json(json_parsed).to_csv(OutputFileNameC, header=1)
 
 	# add header
-	csvfile = pandas.read_csv(OutputFileName, sep=',')
-	Frame = pandas.DataFrame(csvfile.values, columns = ["ChildOrgName", "Container"])
-	Frame.to_csv(OutputFileName, sep=',', index=False)
+	csvfile = pd.read_csv(OutputFileNameC, sep=',')
+	Frame = pd.DataFrame(csvfile.values, columns = ["ChildOrgName", "Container"])
+	Frame.to_csv(OutputFileNameC, sep=',', index=False)
 
 	# Each item in this list will represent a SignalFlow program line. We will assemble these later.
 	signal_flow_program_parts = [
@@ -189,13 +191,13 @@ def main():
 
 	json_parsed = json.dumps(results)
 
-	OutputFileName = "Host.csv"
-	pandas.read_json(json_parsed).to_csv(OutputFileName, header=1)
+	OutputFileNameH = "Host1.csv"
+	pd.read_json(json_parsed).to_csv(OutputFileNameH, header=1)
 
 	# add header
-	csvfile = pandas.read_csv(OutputFileName, sep=',')
-	Frame = pandas.DataFrame(csvfile.values, columns = ["ChildOrgName", "Host"])
-	Frame.to_csv(OutputFileName, sep=',', index=False)
+	csvfile = pd.read_csv(OutputFileNameH, sep=',')
+	Frame = pd.DataFrame(csvfile.values, columns = ["ChildOrgName", "Host"])
+	Frame.to_csv(OutputFileNameH, sep=',', index=False)
 
 	# Each item in this list will represent a SignalFlow program line. We will assemble these later.
 	signal_flow_program_parts = [
@@ -209,21 +211,28 @@ def main():
 
 	json_parsed = json.dumps(results)
 
-	OutputFileName = "CustomMetrics.csv"
-	pandas.read_json(json_parsed).to_csv(OutputFileName, header=1)
+	OutputFileNameM = "CustomMetrics1.csv"
+	pd.read_json(json_parsed).to_csv(OutputFileNameM, header=1)
 
 	# add header
-	csvfile = pandas.read_csv(OutputFileName, sep=',')
-	Frame = pandas.DataFrame(csvfile.values, columns = ["ChildOrgName", "CustomMetrics"])
-	Frame.to_csv(OutputFileName, sep=',', index=False)
+	csvfile = pd.read_csv(OutputFileNameM, sep=',')
+	Frame = pd.DataFrame(csvfile.values, columns = ["ChildOrgName", "CustomMetrics"])
+	Frame.to_csv(OutputFileNameM, sep=',', index=False)
 
 	# Combine all files
-	extension = 'csv'
-	all_filenames = [i for i in glob.glob('*.{}'.format(extension))]
-	#combine all files in the list
-	combined_csv = pandas.concat([pandas.read_csv(f) for f in all_filenames ], sort=True)
-	#export to csv
-	combined_csv.to_csv( "BillingOutput.csv", index=False, encoding='utf-8-sig')
+	OutputFileMerge1 = 'MergedFile1.csv'
+
+	dfsH = pd.read_csv(OutputFileNameH)
+	dfsC = pd.read_csv(OutputFileNameC)
+	merged1 = pd.merge(dfsH, dfsC, on='ChildOrgName', how='outer')
+	merged1.to_csv(OutputFileMerge1, index=False, encoding='utf-8-sig')
+
+	dfsM = pd.read_csv(OutputFileNameM)
+	dfs1 = pd.read_csv(OutputFileMerge1)
+	merged2 = pd.merge(dfs1, dfsM, on='ChildOrgName', how='outer')
+	merged2.to_csv( "BillingOutput.csv", index=False, encoding='utf-8-sig')
+
+	#print(merged2)
 
 	print('THE END!')
 
