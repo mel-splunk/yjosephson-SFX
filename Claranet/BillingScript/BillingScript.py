@@ -242,7 +242,7 @@ def main():
 
 	df = df.drop(['Host1', 'Container1', 'CustomMetrics1'], axis=1)
 
-	columnlist = ['ChildOrgName', 'Container', 'Host', 'CustomMetrics', 'Licenses']
+	columnlist = ['ChildOrgName', 'Host', 'Container', 'CustomMetrics', 'Licenses']
 	df.columns = columnlist
 
 	df.to_csv(OutputFileNameFinal, index=False)
