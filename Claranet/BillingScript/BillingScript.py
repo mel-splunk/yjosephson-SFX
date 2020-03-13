@@ -9,7 +9,10 @@ import argparse
 import pandas as pd
 import numpy as np
 
-SIGNALFX_API_KEY = '8pTi_Ul7wVR-dC0xGT2aJw'
+#cloudreach
+#SIGNALFX_API_KEY = '8pTi_Ul7wVR-dC0xGT2aJw'
+#claranet
+SIGNALFX_API_KEY = 'hK5_0DgM2InGbHxc9tNEsw'
 
 sfx = signalfx.SignalFx(api_endpoint='https://api.eu0.signalfx.com',
 		ingest_endpoint='https://ingest.eu0.signalfx.com',
@@ -156,26 +159,6 @@ def main():
 
 	# Each item in this list will represent a SignalFlow program line. We will assemble these later.
 	signal_flow_program_parts = [
-		"A = data('sf.org.child.numResourcesMonitored', filter=filter('resourceType', 'container')).sum(by=['childOrgName']).mean(cycle='hour', cycle_start='0m', partial_values=False).mean(cycle='month', cycle_start='1d', partial_values=False).publish(label='A')"
-	]
-
-	# Assemble each item in the array to a large program text with each item on it's own line.
-	assembled_program_text = '\n'.join(signal_flow_program_parts)
-
-	results = get_signalflow_results(program=assembled_program_text, start=start, stop=end, resolution=900000, immediate=True)
-
-	json_parsed = json.dumps(results)
-
-	OutputFileNameC = "Container.csv"
-	pd.read_json(json_parsed).to_csv(OutputFileNameC, header=1)
-
-	# add header
-	csvfile = pd.read_csv(OutputFileNameC, sep=',')
-	Frame = pd.DataFrame(csvfile.values, columns = ["ChildOrgName", "Container"])
-	Frame.to_csv(OutputFileNameC, sep=',', index=False)
-
-	# Each item in this list will represent a SignalFlow program line. We will assemble these later.
-	signal_flow_program_parts = [
 		"A = data('sf.org.child.numResourcesMonitored', filter=filter('resourceType', 'host')).sum(by=['childOrgName']).mean(cycle='hour', cycle_start='0m', partial_values=False).mean(cycle='month', cycle_start='1d', partial_values=False).publish(label='A')"
 	]
 
@@ -186,13 +169,42 @@ def main():
 
 	json_parsed = json.dumps(results)
 
-	OutputFileNameH = "Host.csv"
-	pd.read_json(json_parsed).to_csv(OutputFileNameH, header=1)
+	HostDataFlag = 0
+	ContainerDataFlag = 0
+	CustomMetricsDataFlag = 0
 
-	# add header
-	csvfile = pd.read_csv(OutputFileNameH, sep=',')
-	Frame = pd.DataFrame(csvfile.values, columns = ["ChildOrgName", "Host"])
-	Frame.to_csv(OutputFileNameH, sep=',', index=False)
+	#print (len(json_parsed))
+	if (len(json_parsed) > 2):
+		HostDataFlag = 1
+		OutputFileNameH = "Host.csv"
+		pd.read_json(json_parsed).to_csv(OutputFileNameH, header=1)
+
+		# add header
+		csvfile = pd.read_csv(OutputFileNameH, sep=',')
+		Frame = pd.DataFrame(csvfile.values, columns = ["ChildOrgName", "Host"])
+		Frame.to_csv(OutputFileNameH, sep=',', index=False)
+		
+	# Each item in this list will represent a SignalFlow program line. We will assemble these later.
+	signal_flow_program_parts = [
+		"A = data('sf.org.child.numResourcesMonitored', filter=filter('resourceType', 'container')).sum(by=['childOrgName']).mean(cycle='hour', cycle_start='0m', partial_values=False).mean(cycle='month', cycle_start='1d', partial_values=False).publish(label='A')"
+	]
+
+	# Assemble each item in the array to a large program text with each item on it's own line.
+	assembled_program_text = '\n'.join(signal_flow_program_parts)
+
+	results = get_signalflow_results(program=assembled_program_text, start=start, stop=end, resolution=900000, immediate=True)
+
+	json_parsed = json.dumps(results)
+
+	if (len(json_parsed) > 2):
+		ContainerDataFlag = 1
+		OutputFileNameC = "Container.csv"
+		pd.read_json(json_parsed).to_csv(OutputFileNameC, header=1)
+
+		# add header
+		csvfile = pd.read_csv(OutputFileNameC, sep=',')
+		Frame = pd.DataFrame(csvfile.values, columns = ["ChildOrgName", "Container"])
+		Frame.to_csv(OutputFileNameC, sep=',', index=False)
 
 	# Each item in this list will represent a SignalFlow program line. We will assemble these later.
 	signal_flow_program_parts = [
@@ -206,46 +218,171 @@ def main():
 
 	json_parsed = json.dumps(results)
 
-	OutputFileNameM = "CustomMetrics.csv"
-	pd.read_json(json_parsed).to_csv(OutputFileNameM, header=1)
+	if (len(json_parsed) > 2):
+		CustomMetricsDataFlag = 1
+		OutputFileNameM = "CustomMetrics.csv"
+		pd.read_json(json_parsed).to_csv(OutputFileNameM, header=1)
 
-	# add header
-	csvfile = pd.read_csv(OutputFileNameM, sep=',')
-	Frame = pd.DataFrame(csvfile.values, columns = ["ChildOrgName", "CustomMetrics"])
-	Frame.to_csv(OutputFileNameM, sep=',', index=False)
+		# add header
+		csvfile = pd.read_csv(OutputFileNameM, sep=',')
+		Frame = pd.DataFrame(csvfile.values, columns = ["ChildOrgName", "CustomMetrics"])
+		Frame.to_csv(OutputFileNameM, sep=',', index=False)
 
 	# Combine all files
 	OutputFileMerge1 = 'MergedFile1.csv'
 	OutputFileMerge2 = 'MergedFile2.csv'
-
-	dfsH = pd.read_csv(OutputFileNameH)
-	dfsC = pd.read_csv(OutputFileNameC)
-	merged1 = pd.merge(dfsH, dfsC, on='ChildOrgName', how='outer')
-	merged1.to_csv(OutputFileMerge1, index=False)
-
-	dfsM = pd.read_csv(OutputFileNameM)
-	dfs1 = pd.read_csv(OutputFileMerge1)
-	merged2 = pd.merge(dfs1, dfsM, on='ChildOrgName', how='outer')
-	merged2.to_csv(OutputFileMerge2, index=False)
-
-	# Add License calculation
-	# Compare Host count to (Container/20) to (CustomMetrics/200) return largest value
 	OutputFileNameFinal = "BillingOutput.csv"
-	df = pd.read_csv(OutputFileMerge2, header=0, sep=',')
-	df1 = df
 
-	df1['Host1'] = df.apply(lambda x: x['Host'] if x['Host'] is not np.nan else 0, axis = 1)
-	df1['Container1'] = (df.apply(lambda y: y['Container'] if y['Container'] is not np.nan else 0, axis = 1)/20)
-	df1['CustomMetrics1'] = (df.apply(lambda z: z['CustomMetrics'] if z['CustomMetrics'] is not np.nan else 0, axis = 1)/200)
+	if HostDataFlag == 1 and ContainerDataFlag == 1 and CustomMetricsDataFlag == 1:
+		dfsH = pd.read_csv(OutputFileNameH)
+		dfsC = pd.read_csv(OutputFileNameC)
+		merged1 = pd.merge(dfsH, dfsC, on='ChildOrgName', how='outer')
+		merged1.to_csv(OutputFileMerge1, index=False)
 
-	df['Licenses'] = df1[['Host1','Container1','CustomMetrics1']].max(axis=1, numeric_only=True)
+		dfsM = pd.read_csv(OutputFileNameM)
+		dfs1 = pd.read_csv(OutputFileMerge1)
+		merged2 = pd.merge(dfs1, dfsM, on='ChildOrgName', how='outer')
+		merged2.to_csv(OutputFileMerge2, index=False)
 
-	df = df.drop(['Host1', 'Container1', 'CustomMetrics1'], axis=1)
+		# Add License calculation
+		# Compare Host count to (Container/20) to (CustomMetrics/200) return largest value
+		df = pd.read_csv(OutputFileMerge2, header=0, sep=',')
+		df1 = df
 
-	columnlist = ['ChildOrgName', 'Host', 'Container', 'CustomMetrics', 'Licenses']
-	df.columns = columnlist
+		df1['Host1'] = df.apply(lambda x: x['Host'] if x['Host'] is not np.nan else 0, axis = 1)
+		df1['Container1'] = (df.apply(lambda y: y['Container'] if y['Container'] is not np.nan else 0, axis = 1)/20)
+		df1['CustomMetrics1'] = (df.apply(lambda z: z['CustomMetrics'] if z['CustomMetrics'] is not np.nan else 0, axis = 1)/200)
 
-	df.to_csv(OutputFileNameFinal, index=False)
+		df['Licenses'] = df1[['Host1','Container1','CustomMetrics1']].max(axis=1, numeric_only=True)
+
+		df = df.drop(['Host1', 'Container1', 'CustomMetrics1'], axis=1)
+
+		columnlist = ['ChildOrgName', 'Host', 'Container', 'CustomMetrics', 'Licenses']
+		df.columns = columnlist
+
+		df.to_csv(OutputFileNameFinal, index=False)
+
+	elif HostDataFlag == 1 and ContainerDataFlag == 1 and CustomMetricsDataFlag == 0:
+		dfsH = pd.read_csv(OutputFileNameH)
+		dfsC = pd.read_csv(OutputFileNameC)
+		merged1 = pd.merge(dfsH, dfsC, on='ChildOrgName', how='outer')
+		merged1.to_csv(OutputFileMerge1, index=False)
+
+		# Add License calculation
+		# Compare Host count to (Container/20) return largest value
+		df = pd.read_csv(OutputFileMerge1, header=0, sep=',')
+		df1 = df
+
+		df1['Host1'] = df.apply(lambda x: x['Host'] if x['Host'] is not np.nan else 0, axis = 1)
+		df1['Container1'] = (df.apply(lambda y: y['Container'] if y['Container'] is not np.nan else 0, axis = 1)/20)
+
+		df['Licenses'] = df1[['Host1','Container1']].max(axis=1, numeric_only=True)
+
+		df = df.drop(['Host1', 'Container1'], axis=1)
+
+		columnlist = ['ChildOrgName', 'Host', 'Container', 'Licenses']
+		df.columns = columnlist
+
+		df.to_csv(OutputFileNameFinal, index=False)
+	
+	elif HostDataFlag == 1 and ContainerDataFlag == 0 and CustomMetricsDataFlag == 1:
+		dfsH = pd.read_csv(OutputFileNameH)
+		dfsC = pd.read_csv(OutputFileNameM)
+		merged1 = pd.merge(dfsH, dfsC, on='ChildOrgName', how='outer')
+		merged1.to_csv(OutputFileMerge1, index=False)
+
+		# Add License calculation
+		# Compare Host count to (CustomMetrics/200) return largest value
+		df = pd.read_csv(OutputFileMerge1, header=0, sep=',')
+		df1 = df
+
+		df1['Host1'] = df.apply(lambda x: x['Host'] if x['Host'] is not np.nan else 0, axis = 1)
+		df1['CustomMetrics1'] = (df.apply(lambda z: z['CustomMetrics'] if z['CustomMetrics'] is not np.nan else 0, axis = 1)/200)
+
+		df['Licenses'] = df1[['Host1','CustomMetrics1']].max(axis=1, numeric_only=True)
+
+		df = df.drop(['Host1', 'CustomMetrics1'], axis=1)
+
+		columnlist = ['ChildOrgName', 'Host', 'CustomMetrics', 'Licenses']
+		df.columns = columnlist
+
+		df.to_csv(OutputFileNameFinal, index=False)
+
+	elif HostDataFlag == 1 and ContainerDataFlag == 0 and CustomMetricsDataFlag == 0:
+		# Add License calculation
+		# Return only Host count
+		df = pd.read_csv(OutputFileNameH, header=0, sep=',')
+		df1 = df
+
+		df1['Host1'] = df.apply(lambda x: x['Host'] if x['Host'] is not np.nan else 0, axis = 1)
+
+		df['Licenses'] = df1[['Host1']].max(axis=1, numeric_only=True)
+
+		df = df.drop(['Host1'], axis=1)
+
+		columnlist = ['ChildOrgName', 'Host', 'Licenses']
+		df.columns = columnlist
+
+		df.to_csv(OutputFileNameFinal, index=False)
+
+	elif HostDataFlag == 0 and ContainerDataFlag == 1 and CustomMetricsDataFlag == 1:
+		dfsH = pd.read_csv(OutputFileNameC)
+		dfsC = pd.read_csv(OutputFileNameM)
+		merged1 = pd.merge(dfsH, dfsC, on='ChildOrgName', how='outer')
+		merged1.to_csv(OutputFileMerge1, index=False)
+
+		# Add License calculation
+		# Compare (Container/20) to (CustomMetrics/200) return largest value
+		df = pd.read_csv(OutputFileMerge1, header=0, sep=',')
+		df1 = df
+
+		df1['Container1'] = (df.apply(lambda y: y['Container'] if y['Container'] is not np.nan else 0, axis = 1)/20)
+		df1['CustomMetrics1'] = (df.apply(lambda z: z['CustomMetrics'] if z['CustomMetrics'] is not np.nan else 0, axis = 1)/200)
+
+		df['Licenses'] = df1[['Container1','CustomMetrics1']].max(axis=1, numeric_only=True)
+
+		df = df.drop(['Container1', 'CustomMetrics1'], axis=1)
+
+		columnlist = ['ChildOrgName', 'Container', 'CustomMetrics', 'Licenses']
+		df.columns = columnlist
+
+		df.to_csv(OutputFileNameFinal, index=False)
+
+	elif HostDataFlag == 0 and ContainerDataFlag == 0 and CustomMetricsDataFlag == 1:
+		# Add License calculation
+		# Return only (CustomMetrics/200) count
+		df = pd.read_csv(OutputFileM, header=0, sep=',')
+		df1 = df
+
+		df1['CustomMetrics1'] = (df.apply(lambda z: z['CustomMetrics'] if z['CustomMetrics'] is not np.nan else 0, axis = 1)/200)
+
+		df['Licenses'] = df1[['CustomMetrics1']].max(axis=1, numeric_only=True)
+
+		df = df.drop(['CustomMetrics1'], axis=1)
+
+		columnlist = ['ChildOrgName', 'CustomMetrics', 'Licenses']
+		df.columns = columnlist
+
+		df.to_csv(OutputFileNameFinal, index=False)
+	
+	elif HostDataFlag == 0 and ContainerDataFlag == 1 and CustomMetricsDataFlag == 0:
+		# Add License calculation
+		# Return only (Container/20) count
+		df = pd.read_csv(OutputFileC, header=0, sep=',')
+		df1 = df
+
+		df1['Container1'] = (df.apply(lambda y: y['Container'] if y['Container'] is not np.nan else 0, axis = 1)/20)
+
+		df['Licenses'] = df1[['Container1']].max(axis=1, numeric_only=True)
+
+		df = df.drop(['Container1'], axis=1)
+
+		columnlist = ['ChildOrgName', 'Container', 'Licenses']
+		df.columns = columnlist
+
+		df.to_csv(OutputFileNameFinal, index=False)
+	else:
+		print ('No Metrics Data')
 
 	print('THE END!')
 
