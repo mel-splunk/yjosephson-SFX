@@ -9,10 +9,7 @@ import argparse
 import pandas as pd
 import numpy as np
 
-#cloudreach
-#SIGNALFX_API_KEY = '8pTi_Ul7wVR-dC0xGT2aJw'
-#claranet
-SIGNALFX_API_KEY = 'hK5_0DgM2InGbHxc9tNEsw'
+SIGNALFX_API_KEY = 'XXXX'
 
 sfx = signalfx.SignalFx(api_endpoint='https://api.eu0.signalfx.com',
 		ingest_endpoint='https://ingest.eu0.signalfx.com',
