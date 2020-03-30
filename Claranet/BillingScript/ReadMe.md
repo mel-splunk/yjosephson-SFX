@@ -8,6 +8,9 @@ Input parameter:
 	By default if this parameter did not get passed in, it will use the current UTC time and set it as the end time and start time will be 15 minutes prior.
 
 Column 1: Host
+
 Column 2: Container
+
 Column 3: Custom Metrics
+
 Column 4: Licenses (Compare Host count to (Container count/20) to (Custom Metrics count/200) returns largest value)
